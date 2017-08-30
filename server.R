@@ -1,6 +1,3 @@
-passWord<-c("we<3Animals", "fiskfisk" )
-
-
 require(rCharts)
 options(RCHART_WIDTH = 800)
 
