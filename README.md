@@ -10,6 +10,7 @@ HOW TO USE:
 
 1. Copy github to a new folder with your shiny-name
 2. Create file called folderName with the name of the folder (shiny-name)
-3. Run prepData.R, from its directory, with either .frq, bim and fam files from plink or .beagle, .fopt (+ .filter) and .qopt
+3. Add password as 'passWord' variable in server.R script in folder
+4. Run prepData.R, from its directory, with either .frq, bim and fam files from plink or .beagle, .fopt (+ .filter) and .qopt
 files from NGSadmix.
-4. Enjoy!
+5. Enjoy!
