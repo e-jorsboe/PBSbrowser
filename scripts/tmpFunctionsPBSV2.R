@@ -2,12 +2,12 @@
 ## read in C++ functions that calculate Reynolds Fst
 ## another that does weighted average of single locus estimators Fst
 ## lastly a function that calculates single PBS and between and total genomic variance
-source("scripts/reynolds_Fst.R") 
+
 source("scripts/C_Fst_calculatorV2.R")
 source("scripts/C_reynolds_Fst.R")
 
 ## for getting a faster rank function, data.table::frank
-library(data.table,lib="/home/albrecht/R/x86_64-pc-linux-gnu-library/3.2/")
+library(data.table)
 
 ##print(dirname(sys.frame(1)$ofile))
 
