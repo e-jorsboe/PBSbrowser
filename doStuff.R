@@ -1,7 +1,10 @@
 
+shinyDir<-commandArgs(trailingOnly=T)[1]
+name<-commandArgs(trailingOnly=T)[2]
+
 setwd(".")
 
-theFile<-"/home/albrecht/public/open/tmp/tmp.Rdata"
+theFile<-paste0(shinyDir,"/tmp.Rdata")
 
 source("scripts/tmpFunctionsPBSV2.R") 
 
@@ -19,13 +22,12 @@ inInterval$pos<-as.numeric(inInterval$pos)
 ## might have to change with Fst
 ## inInterval[,c("PBS",paste("Fst",pop1,pop2,sep=""),paste("Fst",pop1,pop3,sep=""),paste("Fst",pop2,pop3,sep=""),"quantile")]<-round(inInterval[,c("PBS",paste("Fst",pop1,pop2,sep=""),paste("Fst",pop1,pop3,sep=""),paste("Fst",pop2,pop3,sep=""),"quantile")],5)
 
-name<-paste(pop1,pop2,pop3,"windows",windows,ifelse(windows=="NO","",winSize),ifelse(FstOnly=="YES","FstOnly",""),'.gz',sep="")
 
-setwd("/home/albrecht/public/open/tmp/")
+setwd(shinyDir)
 
 con <- gzfile(sub("Rdata","gz",theFile),"w")
 #con <- gzfile(name,"w")
 write.table(inInterval,con,sep="\t",quote=F,row=F)
 close(con)
 
-system(paste("cp /home/albrecht/public/open/tmp/tmp.gz /home/albrecht/public/open/tmp/",name,sep=""))
+system(paste("cp ",shinyDir,"/tmp.gz ",shinyDir,"/",name,sep=""))

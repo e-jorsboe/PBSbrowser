@@ -13,6 +13,27 @@ library(data.table)
 
 folderName<-scan("folderName",what="ll")[1]
 
+
+errorPlot<-function(txt,cex=2,error="Error"){
+    plot(0:1,0:1,col="transparent",xlab="",ylab="",axes=F)
+    text(0.5,0.5,txt,cex=cex)
+    mtext(error,1:4,col="red",cex=2)
+}
+
+
+pw<-function(x,passWord,type="plot"){
+    tex<-"Enter correct password"
+    if(type=="plot")
+        errorPlot(tex)
+    if(type=="matrix")
+        matrix(tex,1,1)
+    if(type=="text")
+        tex
+    return(!x$pw%in%passWord)
+}
+
+
+
 ## this function plots then genes for a certain interval on a chromosome
 ## it uses a hg19 gene list and some trick with par & plot
 plotGenes<-function(chr,min.pos,max.pos,geneFile){
@@ -69,14 +90,14 @@ plotGenes<-function(chr,min.pos,max.pos,geneFile){
 }
 
 
-genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al13,al23,bal12,bal13,bal23,pbs,pop1,pop2,pop3,minWin,whichGene,nGene,geneRange,wholeGenome=F,shinyPBS,FstOnly=F){
+genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al13,al23,bal12,bal13,bal23,pbs,pop1,pop2,pop3,minWin,whichGene,nGene,geneRange,wholeGenome=F,shinyDir,FstOnly=F){
     ## fallGene=fallGene;nInd=nInd;posGene=posGene;chrGene=chrGene;nPos=nPos;start=start;end=end;inputChr=input$chr;al12=numeric(nPos);
     ## al13=numeric(nPos);al23=numeric(nPos);bal12=numeric(nPos);bal13=numeric(nPos);bal23=numeric(nPos);pbs=numeric(nPos);
     ## pop1=input$pop1;pop2=input$pop2;pop3=input$pop3;whichGene=whichGene;genes=nGene;
     ## geneRange=geneRange;wholeGenome=(input$chr<0);minwin=10;
 
     
-    newName<-paste(paste0(shinyPBS,folderName,".",pop1),pop2,pop3,minWin,"chr","ALL",start,end,"genePBS",ifelse(FstOnly,"Fst",""),sep=".")
+    newName<-paste(paste0(shinyDir,"/",folderName,"/",".",pop1),pop2,pop3,minWin,"chr","ALL",start,end,"genePBS",ifelse(FstOnly,"Fst",""),sep=".")
     ## only load when doing windows, because single SNP PBS is not slow
     if(file.exists(newName)){
         load(newName)
@@ -159,8 +180,8 @@ genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al1
 ## this one calculate PBS values for whole genome, either single marker or window,
 ## it uses the aforementioned C++ functions
 ## if windows it looks if file already exists and it loads if so
-wholeGenomePBS<-function(windows,fall,nInd,pos,rs,chr,n,al12,al13,al23,bal12,bal13,bal23,pbs,pop1,pop2,pop3,winSize,minWin,shinyPBS,SNPsinChr,PBSonly=F,maxChr,FstOnly=F){
-    
+wholeGenomePBS<-function(windows,fall,nInd,pos,rs,chr,n,al12,al13,al23,bal12,bal13,bal23,pbs,pop1,pop2,pop3,winSize,minWin,shinyDir,SNPsinChr,PBSonly=F,maxChr,FstOnly=F){
+
     if(windows=="NO"){
         ## calculating PBS values for whole genome
         pbs2<-pbsCalculator_forCpp(fall[,pop1],fall[,pop2],fall[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],pos,chr,
@@ -172,9 +193,7 @@ wholeGenomePBS<-function(windows,fall,nInd,pos,rs,chr,n,al12,al13,al23,bal12,bal
         } else if(PBSonly){
             return(list(PBS=pbs2[["pbs"]]))
         } 
-
-        
-        
+                
         Fst12<-ifelse(pbs2[["al12"]]/pbs2[["bal12"]]>0.99,0.99,pbs2[["al12"]]/pbs2[["bal12"]])
         Fst13<-ifelse(pbs2[["al13"]]/pbs2[["bal13"]]>0.99,0.99,pbs2[["al13"]]/pbs2[["bal13"]])
         Fst23<-ifelse(pbs2[["al23"]]/pbs2[["bal23"]]>0.99,0.99,pbs2[["al23"]]/pbs2[["bal23"]])
@@ -200,7 +219,7 @@ wholeGenomePBS<-function(windows,fall,nInd,pos,rs,chr,n,al12,al13,al23,bal12,bal
 
 
         ## generate a file name for the settings to save
-        newName<-paste(paste0(shinyPBS,folderName,".",pop1),pop2,pop3,winSize,ifelse(FstOnly,"Fst",""),"table",sep=".")
+        newName<-paste(paste0(shinyDir,"/",folderName,"/",".",pop1),pop2,pop3,winSize,ifelse(FstOnly,"Fst",""),"table",sep=".")
         ## only load when doing windows, because single SNP PBS is not slow
         if(file.exists(newName)){
             load(newName)
@@ -349,7 +368,6 @@ PBSTable<-function(wgTable,chr,pop1,pop2,pop3,ifWindows,winSize,minWin,genes,all
             inInterval[,paste("Fst",pop1,pop3,sep="")]<-as.numeric(inInterval[,paste("Fst",pop1,pop3,sep="")])
             inInterval[,paste("Fst",pop2,pop3,sep="")]<-as.numeric(inInterval[,paste("Fst",pop2,pop3,sep="")])
             inInterval[,"PBS"]<-as.numeric(inInterval[,"PBS"])
-            print(head(inInterval))
         }
         
     } else{
@@ -502,8 +520,14 @@ PBSTable<-function(wgTable,chr,pop1,pop2,pop3,ifWindows,winSize,minWin,genes,all
        
         if(all=="YES"){
             ## if whole genome does multithreaded apply for speed!
-            all2 <- parallel::mclapply(1:maxChr,superFun2,mc.cores=maxChr)
-            inInterval$genes_contained_in_Window <- unlist(all2)
+            if(require(parallel,character.only = TRUE)){
+                all2 <- parallel::mclapply(1:maxChr,superFun2,mc.cores=maxChr)
+                inInterval$genes_contained_in_Window <- unlist(all2)
+            } else{
+                print("calculating whole genome NOT threaded - might take long")
+                all2 <- lapply(1:maxChr,superFun2)
+                inInterval$genes_contained_in_Window <- unlist(all2)
+            }
         } else{
             inInterval<-inInterval[ order(inInterval$pos),]
             all2<-sapply(chr,superFun2)       
@@ -516,91 +540,3 @@ PBSTable<-function(wgTable,chr,pop1,pop2,pop3,ifWindows,winSize,minWin,genes,all
     return(inInterval)
 }
 
-##### SHOULD THIS BE INCLUDED??
-
-# 
-# 
-# genePBS<-function(wgTable,chr,pop1,pop2,pop3,genes,all,start,end,thisChr){
-#   #wgTable=wgTable;chr=input$chr;pop1=input$pop1;pop2=input$pop2;pop3=input$pop3;ifWindows=input$ifWindows;winSize=input$winSize;genes=dat;all="NO";input$start=start;input$end=end
-#   wgTable$chr<-as.numeric(wgTable$chr)
-#   wgTable$pos<-as.numeric(wgTable$pos)
-#   wgTable$PBS<-as.numeric(wgTable$PBS)
-#   # to extract the right interval of values again end<0 interval around start, start<0 whole chromosome
-#   if(all=="YES"){
-#     inIntervalIndex<-rep(TRUE,length(wgTable$pos))
-#     notInIntervalIndex<-!(inIntervalIndex)
-#   } else if(start<0){
-#     inIntervalIndex<-which(wgTable$chr==chr)
-#     notInIntervalIndex<-which(wgTable$chr!=chr)
-#   } else if(end<0){
-#     inIntervalIndex<-which(wgTable$pos>=(start-abs(end))&wgTable$pos<=(start+abs(end))&wgTable$chr==chr)
-#     notInIntervalIndex<-which(wgTable$pos<(start-abs(end))|wgTable$pos>(start+abs(end))|wgTable$chr!=chr)    
-#   } else{
-#     inIntervalIndex<-which(wgTable$pos>=start&wgTable$pos<=end&wgTable$chr==chr)
-#     notInIntervalIndex<-which(wgTable$pos<start|wgTable$pos>end|wgTable$chr!=chr)
-#     
-#   }
-#   
-#   
-#   # calculate which quantile PBS values are in, by taking their 1-(rank/nSNP), only for those in desired window
-#   PBSquantile <- data.table::frank(c(wgTable[["PBS"]][inIntervalIndex],wgTable[["PBS"]][notInIntervalIndex]))[1:length(inIntervalIndex)]/length(wgTable[[1]])
-#   
-#   # different things have to be displayed depending on if with windows or not
-#  
-#   inInterval<-cbind(wgTable[["chr"]][inIntervalIndex],wgTable[["pos"]][inIntervalIndex],wgTable[["PBS"]][inIntervalIndex],wgTable[["SNPsinWin"]][inIntervalIndex],wgTable[[paste("Fst",pop1,pop2,sep="")]][inIntervalIndex],
-#                     wgTable[[paste("Fst",pop1,pop3,sep="")]][inIntervalIndex],wgTable[[paste("Fst",pop2,pop3,sep="")]][inIntervalIndex],PBSquantile*100)
-#     
-#   
-#   inInterval<-as.data.frame(inInterval,stringsAsFactors = F,)
-#   
-#   colnames(inInterval)<-c(names(wgTable),"quantile")
-#   
-#   inInterval$chr<-as.numeric(inInterval$chr)
-#   inInterval$pos<-as.numeric(inInterval$pos)
-#   inInterval$PBS<-as.numeric(inInterval$PBS)
-#   inInterval[,paste("Fst",pop1,pop2,sep="")]<-as.numeric(inInterval[,paste("Fst",pop1,pop2,sep="")])
-#   inInterval[,paste("Fst",pop1,pop3,sep="")]<-as.numeric(inInterval[,paste("Fst",pop1,pop3,sep="")])
-#   inInterval[,paste("Fst",pop2,pop3,sep="")]<-as.numeric(inInterval[,paste("Fst",pop2,pop3,sep="")])
-#   inInterval$quantile<-as.numeric(inInterval$quantile)
-#   
-#   # if not whole genome only returns top 1000 PBS
-#   if(all!="YES"){
-#     inInterval<-inInterval[order(inInterval$PBS,decreasing=T),]
-#     inInterval<-inInterval[1:min(1000,nrow(inInterval)),]
-#     
-#   }
-#   
-#   genes2<-lapply(1:22,function(x) genes[genes$chrom==paste0("chr",x),])
-#   genes2<-lapply(1:22,function(x) genes2[[x]][order(genes2[[x]]$cdsStart),] )
-#   names(genes2)<-1:22
-#   
-#   if(ifWindows=="NO"){
-#     
-#     # put AF in allele frequency column
-#     colnames(inInterval)[c(ncol(inInterval)-3,ncol(inInterval)-2,ncol(inInterval)-1)]<-sapply(colnames(inInterval)[c(ncol(inInterval)-3,ncol(inInterval)-2,ncol(inInterval)-1)],function(x) paste("AF ",x,collapse=""))
-#     
-#     if(all=="YES"){
-#       # precaculated closest gene for each marker
-#       load("/home/emil/shiny/powerAnd/data/closestGeneSingleMarker.txt",) # object called closestGeneSingleMarker
-#       inInterval$closestsGene<-closestGeneSingleMarker
-#       colnames(inInterval)[ncol(inInterval)]<-"closests_gene"
-#     } else{
-#       inInterval$closestsGene<-apply(inInterval,1,function(x) closestGene(as.numeric(x[1]),as.numeric(x[2]),genes))
-#       colnames(inInterval)[ncol(inInterval)]<-"closests_gene"
-#     }
-#     
-#     
-#   } else{
-#     # pos is actually midPos, so edges midPos +- winSize/2
-#     inInterval<-inInterval[ inInterval$SNPsinWin>minWin,]
-#     
-#     
-#   
-#    
-#     
-#     
-#   }
-#   inInterval$pos<-as.character(inInterval$pos)
-#   
-#   return(inInterval)
-# }

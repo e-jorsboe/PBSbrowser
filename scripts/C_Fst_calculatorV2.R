@@ -67,12 +67,7 @@ geneFst2<-function(nSNP,vBetween,vTotal,whichGene,genes,vBetweenGenes,vTotalGene
     }
     
     for(j in 0:genes){
-        if(j < 5){
-            print("inside function:")
-            print(vBetweenGenes[j+1])
-            print(vTotalGenes[j+1])
-            
-        }
+
         Vcombined[j+1] = vBetweenGenes[j+1] / vTotalGenes[j+1];
     }
     

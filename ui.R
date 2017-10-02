@@ -1,9 +1,6 @@
 library(shiny)
-require(rCharts)
-options(RCHART_WIDTH = 800)
-
-## do your own stuff
-source("/home/albrecht/Rfun/powerQuantitative.R")
+##require(rCharts)
+##options(RCHART_WIDTH = 800)
 
 ## loads popNames
 load("data/info.Rdata")
@@ -65,14 +62,6 @@ conditionalPanel(condition="input.conditionedPanels==5",
                  ),
 
 
-############### display error
-conditionalPanel(condition="input.conditionedPanels==7", ##
-
-                 actionButton("runError", em("Run"))
-                 ),
-
-
-
 selectInput("pop1", "Choose first population:", 
             choices = popNames,selected=popNames[1]),
 selectInput("pop2", "Choose second population:", 
@@ -107,11 +96,11 @@ helpText("")
       tabsetPanel(
           tabPanel("PBS Plot",value=1,plotOutput("PBSsinglePlot", height = "1000px")),
           tabPanel("table", value=2,tableOutput("tableTop")),
-          tabPanel("PBS genes", value=3,chartOutput("genePBS","datatables")),
+          tabPanel("PBS genes", value=3,tableOutput("genePBS")),
           tabPanel("manhattan PBS Plot",value=4,plotOutput("manhattanPlot", height = "700px")),
-          tabPanel("top WG table ", value=5,chartOutput("tableTopWg","datatables")),
-          tabPanel("download whole genome",value=6,chartOutput("wholeGenome","datatables")),
-          tabPanel("Where is the error", value=7,textOutput("mistake")),
+          tabPanel("top WG table ", value=5,tableOutput("tableTopWg")),
+          tabPanel("download whole genome",value=6,tableOutput("wholeGenome")),
+
           
           id = "conditionedPanels"
           

@@ -1,8 +1,7 @@
-require(rCharts)
-options(RCHART_WIDTH = 800)
+##require(rCharts)
+##options(RCHART_WIDTH = 800)
 
 library(shiny)
-source("/home/albrecht/Rfun/shiny.R")
 
 setwd(".")
 
@@ -10,8 +9,7 @@ source("scripts/tmpFunctionsPBSV2.R")
 
 folderName<-scan("folderName",what="ADA")[1]
 
-shinyDir<-"/pontus/data/shiny/emil/"
-shinyPBS<-paste0(shinyDir,"pbs")
+shinyDir<-scan("shinyDir",what="ADA")[1]
 shinyCSV<-paste0(shinyDir,"pbs.csv")
 
 read1 <- function(pop,popNames1,theFile,nSNP){
@@ -23,6 +21,8 @@ read1 <- function(pop,popNames1,theFile,nSNP){
     close(con)
     r
 }
+
+passWord<-c("")
 
 ######################################
 ## read in data, freqs and individuals from admixture output
@@ -68,27 +68,27 @@ shinyServer(function(input, output, session) {
             
             ## clearing saved shiny saved files, for faster response
             if(toupper(input$clearData)=="CLEAR"){
-                system(paste0("rm /pontus/data/shiny/emil/pbs",folderName,"*"))
+                system(paste0("rm ",shinyDir,"/",folderName,"*"))
             }
             
             ## preparing arguments for whole genome pbs calculations, or between and total for windows
             n<-length(chr)
             
             if(input$together=="YES"){
-                wgPBSpos<-wholeGenomePBS(windows="NO",fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyPBS=shinyPBS,SNPsinChr=SNPsinChr[,1],PBSonly=T,maxChr=max(chr),FstOnly=input$FstOnly=="YES")
+                wgPBSpos<-wholeGenomePBS(windows="NO",fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],PBSonly=T,maxChr=max(chr),FstOnly=input$FstOnly=="YES")
                 wgPBSpos$pos<-pos
                 wgPBSpos$chr<-chr
                 winPBSpos<-extractWindow(wgPBSpos=wgPBSpos,start=start,end=end,chr=input$chr,minWin=input$minWin,ifWindows="NO",FstOnly=input$FstOnly=="YES")
                 winPos<-winPBSpos[["winPos"]]
                 winPBS<-winPBSpos[[ifelse(input$FstOnly=="YES","Fst12","winPBS")]]
                 
-                wgPBSpos2<-wholeGenomePBS(windows="YES",fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyPBS=shinyPBS,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=input$FstOnly=="YES")
+                wgPBSpos2<-wholeGenomePBS(windows="YES",fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=input$FstOnly=="YES")
                 winPBSpos2<-extractWindow(wgPBSpos=wgPBSpos2,start=start,end=end,chr=input$chr,minWin=input$minWin,ifWindows="YES",FstOnly=input$FstOnly=="YES")
                 winPos2<-winPBSpos2[["winPos"]]
                 winPBS2<-winPBSpos2[[ifelse(input$FstOnly=="YES","Fst12","winPBS")]]
             } else{
                 
-                wgPBSpos<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyPBS=shinyPBS,SNPsinChr=SNPsinChr[,1],PBSonly=(input$ifWindows=="NO"),maxChr=max(chr),FstOnly=input$FstOnly=="YES")
+                wgPBSpos<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],PBSonly=(input$ifWindows=="NO"),maxChr=max(chr),FstOnly=input$FstOnly=="YES")
               
                 if(input$ifWindows=="NO"){
                   wgPBSpos$pos<-pos
@@ -225,7 +225,7 @@ shinyServer(function(input, output, session) {
 
      ## clearing saved shiny saved files, for faster response
      if(toupper(input$clearData)=="CLEAR"){
-       system(paste0("rm /pontus/data/shiny/emil/pbs",folderName,"*"))
+         system(paste0("rm ",shinyDir,"/",folderName,"*"))
      }
      
      ##preparing arguments for whole genome pbs calculations, or between and total for windows
@@ -234,7 +234,7 @@ shinyServer(function(input, output, session) {
      ## calculating PBS values for whole genome, either windows or single marker, C++ functions for speed
      wgPBSpos<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),
                               al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),
-                              pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyPBS=shinyPBS,SNPsinChr=SNPsinChr[,1],PBSonly=(input$ifWindows=="NO"),maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+                              pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],PBSonly=(input$ifWindows=="NO"),maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
      
      ## remove those with PBS lower than 0.4
      
@@ -273,7 +273,7 @@ shinyServer(function(input, output, session) {
  runTable <- eventReactive(input$runTable, {
      ## setwd("/home/emil/shiny/waterbuckPBSV3test/")
      ##input <- list(start=63,end=65,chr=13,ifWindows="NO",winSize=50000,pop1="Ghana",pop2="Kenya",pop3="Uganda",minWin=10,FstOnly="NO")
-     ##shinyPBS <- "~/tmp"
+     ##shinyDir <- "~/tmp"
    
      if(pw(input,passWord,type="matrix")){
       return()
@@ -288,14 +288,14 @@ shinyServer(function(input, output, session) {
      end<-input$end*1e06
      
      if(toupper(input$clearData)=="CLEAR"){
-       system(paste0("rm /pontus/data/shiny/emil/pbs",folderName,"*"))
+         system(paste0("rm ",shinyDir,"/",folderName,"*"))
      }
      
      n<-length(chr)
      
      wgTable<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),
                              al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),
-                             pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyPBS=shinyPBS,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+                             pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
         
      
      if(!(any(start<=wgTable$pos & end>=wgTable$pos & input$chr==wgTable$chr))){
@@ -337,12 +337,12 @@ runPBSgenes <- eventReactive(input$runPBSgenes, {
         return(data.frame("You have picked on population at least twice!"))
     }
     if(toupper(input$clearData)=="CLEAR"){
-      system(paste0("rm /pontus/data/shiny/emil/pbs",folderName,"*"))
+        system(paste0("rm ",shinyDir,"/",folderName,"*"))
     } 
     
     load("data/geneInfo.Rdata")
     ##input <- list(start=60,end=62,chr=11,ifWindows="NO",winSize=50000,pop1="Ghana",pop2="Kenya",pop3="Tanzania",minWin=10,together="YES",quantileLine=95,FstOnly="YES")
-    ##shinyPBS <- "~/tmp/"
+    ##shinyDir <- "~/tmp/"
     
     start<-input$start*1e06
     end<-input$end*1e06
@@ -365,7 +365,7 @@ runPBSgenes <- eventReactive(input$runPBSgenes, {
   
     geneTable<-genePBS(fallGene=fallGene,nInd=nInd,posGene=posGene,chrGene=chrGene,nPos=nPos,start=start,end=end,inputChr=input$chr,al12=numeric(nPos),
                        al13=numeric(nPos),al23=numeric(nPos),bal12=numeric(nPos),bal13=numeric(nPos),bal23=numeric(nPos),pbs=numeric(nPos),
-                       pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,minWin=input$minWin,whichGene=whichGene,nGene=nGene,geneRange=geneRange,wholeGenome=(input$chr<0),shinyPBS=shinyPBS,FstOnly=input$FstOnly=="YES")
+                       pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,minWin=input$minWin,whichGene=whichGene,nGene=nGene,geneRange=geneRange,wholeGenome=(input$chr<0),shinyDir=shinyDir,FstOnly=input$FstOnly=="YES")
     
     geneTable<-as.data.frame(geneTable,stringsAsFactors = F)
     
@@ -409,12 +409,12 @@ tableTopWg <- eventReactive(input$runWG, {
 
     ##input <- list(start=60,end=-2,chr=11,ifWindows="YES",winSize=50000,pop1="MAN",pop2="TEEN",pop3="YRI",minWin=10)
     ##input <- list(start=60,end=66,chr=11,ifWindows="NO",winSize=50000,pop1="NAT",pop2="CEU",pop3="CHB",minWin=10)
-    ##shinyPBS <- "~/tmp"
+    ##shinyDir <- "~/tmp"
     ##start<-input$start*1e06
     ##end<-input$end*1e06
     
     if(toupper(input$clearData)=="CLEAR"){
-      system(paste0("rm /pontus/data/shiny/emil/pbs",folderName,"*"))
+        system(paste0("rm ",shinyDir,"/",folderName,"*"))
     }
     
     
@@ -422,7 +422,7 @@ tableTopWg <- eventReactive(input$runWG, {
     
     wgTable<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),
                             al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),
-                            pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyPBS=shinyPBS,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=input$FstOnly=="YES")
+                            pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=input$FstOnly=="YES")
     
     
     ##if(!(any(start<=wgTable$pos & end>=wgTable$pos & input$chr==wgTable$chr))){
@@ -468,27 +468,6 @@ output$tableTopWg <- renderTable({
 
     })
     
-    
-mistake <- eventReactive(input$runError, {
-    if(pw(input,passWord,type="matrix")){
-        return(data.frame("Correct password Needed!"))
-    }
-    
-      file <- list.files("/var/log/shiny-server/",pattern="watebuckPBSV2",full.names = T)
-            
-            ## for pasting the most recent log file (tells of which error) to the shiny page
-            scan(file,what="adad")
-            
-            paste("LOOKHERE           ",scan,"          LOOKHERE",sep="")
-            
-        })
-        
-        
-    output$mistake <- renderText( {
-      
-      mistake()
-      
-    })
  
 #################################################################
     #input <- list(start=60,end=62,chr=11,ifWindows="NO",winSize=50000,pop1="NAT",pop2="CEU",pop3="CHB",minWin=10)
@@ -511,7 +490,7 @@ mistake <- eventReactive(input$runError, {
           
           wgTable<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),
                                   al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),
-                                  pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyPBS=shinyPBS,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+                                  pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
           
           
           if(!(any(start<=wgTable$pos & end>=wgTable$pos & input$chr==wgTable$chr))){
@@ -572,7 +551,7 @@ mistake <- eventReactive(input$runError, {
             
             geneTable<-genePBS(fallGene=fallGene,nInd=nInd,posGene=posGene,chrGene=chrGene,nPos=nPos,start=start,end=end,inputChr=input$chr,al12=numeric(nPos),
                                al13=numeric(nPos),al23=numeric(nPos),bal12=numeric(nPos),bal13=numeric(nPos),bal23=numeric(nPos),pbs=numeric(nPos),
-                               pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,minWin=input$minWin,whichGene=whichGene,nGene=nGene,geneRange=geneRange,wholeGenome=(input$chr<0),shinyPBS=shinyPBS,FstOnly=input$FstOnly=="YES")
+                               pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,minWin=input$minWin,whichGene=whichGene,nGene=nGene,geneRange=geneRange,wholeGenome=(input$chr<0),shinyDir=shinyDir,FstOnly=input$FstOnly=="YES")
             
             geneTable<-as.data.frame(geneTable,stringsAsFactors = F)
             
@@ -613,16 +592,15 @@ mistake <- eventReactive(input$runError, {
             return(data.frame("Correct password Needed!"))
 
         }
-            
-        
+                    
         ## name the file with populations chosen, if windows and window size
-        name<-paste(input$pop1,input$pop2,input$pop3,"windows",input$ifWindows,ifelse(input$ifWindows=="NO","",input$winSize),ifelse(input$FstOnly=="YES","FstOnly",""),'.gz',sep="")
+        name<-paste(folderName,input$pop1,input$pop2,input$pop3,"windows",input$ifWindows,ifelse(input$ifWindows=="NO","",input$winSize),ifelse(input$FstOnly=="YES","FstOnly",""),'.gz',sep="")
         
-        outFile <- paste("/home/albrecht/public/open/tmp/",name,sep="")
+        outFile <- paste(shinyDir,"/",name,sep="")
         
         ## if out file already exists then tell that and return that
         if(file.exists(outFile)){
-            df<-data.frame(x=paste("Results already made\nget data here popgen.dk/albrecht/open/tmp/",basename(outFile),sep=""))
+            df<-data.frame(x=paste("Results already made\nget data here: ",outFile,sep=""))
             return(df)
         }
         
@@ -631,19 +609,20 @@ mistake <- eventReactive(input$runError, {
         n<-length(chr)
         
         ## pass on arguments to scripts that will calculate this
-        res <- list(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyPBS=shinyPBS,SNPsinChr=SNPsinChr[,1],genes=dat,inputChr=input$chr,FstOnly=input$FstOnly)
+        res <- list(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],genes=dat,inputChr=input$chr,FstOnly=input$FstOnly)
       
-        save(res,file="/home/albrecht/public/open/tmp/tmp.Rdata")
+        save(res,file=paste0(shinyDir,"/tmp.Rdata"))
         
         ## has to be calculated by external scripts, too time consuming for shiny
-        system("Rscript doStuff.R &")
+        ## writes it as gzipped file
+        system(paste0("Rscript doStuff.R ",shinyDir," ",name," &"))
         
         ## tell where to find outputted results
         
         
         ##plot(1,1,main=paste("get data here popgen.dk/albrecht/open/tmp/",input$pop1,input$pop2,input$pop3,"windows",input$ifWindows,ifelse(input$ifWindows=="NO","",input$winSize),".gz\n takes 10 min. go have coffee",sep=""))
 
-        df<-data.frame(x=paste("Takes 10 min, get data here popgen.dk/albrecht/open/tmp/",basename(outFile),sep=""))
+        df<-data.frame(x=paste("Takes 10 min, get data here: ",outFile,sep=""))
         ##dT<- dTable(df)
         return(df)
         
