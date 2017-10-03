@@ -146,7 +146,7 @@ shinyServer(function(input, output, session) {
                     par(mfrow=c(1,3))
                     nf <- layout(matrix(c(1,2,3), 3, 1, byrow=TRUE),heights=c(1,0.5),widths=c(8))
                     par(mar=c(0.2, 6.2, 3, 6.3) + 0.1)
-                    plot(winPos/1e6,winPBS,type=input$plotType,pch=16,col="darkblue",xaxt="n",ylab=ifelse(input$FstOnly=="YES","Fst12","PBS"),main=paste("max ",ifelse(input$FstOnly=="YES","Fst12","PBS")," value in interval is pos ",winPos[which(winPBS==max(winPBS,na.rm=T))]," with ",round(winPBS[which(winPBS==max(winPBS,na.rm=T))],digits = 3),sep=""),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
+                    plot(winPos/1e6,winPBS,type=input$plotType,pch=16,col="darkblue",xaxt="n",ylab=ifelse(input$FstOnly=="YES","Fst12","PBS"),main=paste("max ",ifelse(input$FstOnly=="YES","Fst12","PBS")," value in interval is pos ",winPos[which(winPBS==max(winPBS,na.rm=T))[1]]," with ",round(winPBS[which(winPBS==max(winPBS,na.rm=T))[1]],digits = 3),sep=""),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
                     abline(v=input$posPBS/1e6)
                     ## will put x % quantile line in plot
                     if(input$quantileLine>0 & input$quantileLine<100) {
@@ -182,7 +182,7 @@ shinyServer(function(input, output, session) {
                 else{
                     par(mfrow=2:1)
                     par(mar=c(5.1, 6.2, 3, 6.3))
-                    plot(winPos/1e6,winPBS,type=input$plotType,xlab=paste("Position (Mb) on ",input$chr,sep=""),pch=16,col="darkblue",ylab=ifelse(input$FstOnly=="YES","Fst12","PBS"),main=paste("max ",ifelse(input$FstOnly=="YES","Fst12","PBS")," value in interval is pos ",winPos[which(winPBS==max(winPBS,na.rm=T))]," with ",round(winPBS[which(winPBS==max(winPBS,na.rm=T))],digits = 3),sep=""),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
+                    plot(winPos/1e6,winPBS,type=input$plotType,xlab=paste("Position (Mb) on ",input$chr,sep=""),pch=16,col="darkblue",ylab=ifelse(input$FstOnly=="YES","Fst12","PBS"),main=paste("max ",ifelse(input$FstOnly=="YES","Fst12","PBS")," value in interval is pos ",winPos[which(winPBS==max(winPBS,na.rm=T))[1]]," with ",round(winPBS[which(winPBS==max(winPBS,na.rm=T))[1]],digits = 3),sep=""),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
                     abline(v=input$posPBS/1e6)
                     if(input$quantileLine>0 & input$quantileLine<100) {
                         abline(h=quantile(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]],input$quantileLine/100,na.rm=T),col="red")  
