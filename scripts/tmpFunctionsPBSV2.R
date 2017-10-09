@@ -90,7 +90,7 @@ plotGenes<-function(chr,min.pos,max.pos,geneFile){
 }
 
 
-genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al13,al23,bal12,bal13,bal23,pbs,pop1,pop2,pop3,minWin,whichGene,nGene,geneRange,wholeGenome=F,shinyDir,FstOnly=F){
+genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al13,al23,bal12,bal13,bal23,pbs,pop1,pop2,pop3,minWin,whichGene,nGene,geneRange,whichFst,wholeGenome=F,shinyDir,FstOnly=F){
     ## fallGene=fallGene;nInd=nInd;posGene=posGene;chrGene=chrGene;nPos=nPos;start=start;end=end;inputChr=input$chr;al12=numeric(nPos);
     ## al13=numeric(nPos);al23=numeric(nPos);bal12=numeric(nPos);bal13=numeric(nPos);bal23=numeric(nPos);pbs=numeric(nPos);
     ## pop1=input$pop1;pop2=input$pop2;pop3=input$pop3;whichGene=whichGene;genes=nGene;
@@ -111,8 +111,24 @@ genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al1
     else{
         wholeGenome<-TRUE
         
-        pbs2<-pbsCalculator_forCpp(fallGene[,pop1],fallGene[,pop2],fallGene[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],posGene,chrGene,
-                                   n=nPos,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+        switch(whichFst,
+               Reynolds={        
+                   pbs2<-pbsCalculator_forCpp_ReynoldFst(fallGene[,pop1],fallGene[,pop2],fallGene[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],posGene,chrGene,
+                                                         n=nPos,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+               },
+               Neis={        
+                   pbs2<-pbsCalculator_forCpp_NeiFst(fallGene[,pop1],fallGene[,pop2],fallGene[,pop3],posGene,chrGene,
+                                                     n=nPos,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+               },
+               Hudsons={        
+                   pbs2<-pbsCalculator_forCpp_HudsonFst(fallGene[,pop1],fallGene[,pop2],fallGene[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],posGene,chrGene,
+                                                        n=nPos,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+               },
+               
+               {
+                   print("Not valid Fst estimator selected")
+               }
+               )
         
         geneFst<-list()
         for(e in c("al12","al13","al23")){
@@ -180,13 +196,30 @@ genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al1
 ## this one calculate PBS values for whole genome, either single marker or window,
 ## it uses the aforementioned C++ functions
 ## if windows it looks if file already exists and it loads if so
-wholeGenomePBS<-function(windows,fall,nInd,pos,rs,chr,n,al12,al13,al23,bal12,bal13,bal23,pbs,pop1,pop2,pop3,winSize,minWin,shinyDir,SNPsinChr,PBSonly=F,maxChr,FstOnly=F){
+wholeGenomePBS<-function(windows,fall,nInd,pos,rs,chr,n,al12,al13,al23,bal12,bal13,bal23,pbs,pop1,pop2,pop3,winSize,minWin,shinyDir,SNPsinChr,whichFst,PBSonly=F,maxChr,FstOnly=F){
 
     if(windows=="NO"){
         ## calculating PBS values for whole genome
-        pbs2<-pbsCalculator_forCpp(fall[,pop1],fall[,pop2],fall[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],pos,chr,
-                                   n=n,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+        
+        switch(whichFst,
+               Reynolds={        
+                   pbs2<-pbsCalculator_forCpp_ReynoldFst(fall[,pop1],fall[,pop2],fall[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],pos,chr,
+                                                         n=n,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+               },
+               Neis={        
+                   pbs2<-pbsCalculator_forCpp_NeiFst(fall[,pop1],fall[,pop2],fall[,pop3],pos,chr,
+                                                     n=n,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+               },
+               Hudsons={
+      	           pbs2<-pbsCalculator_forCpp_HudsonFst(fall[,pop1],fall[,pop2],fall[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],pos,chr,
+                                                      n=n,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
 
+               },
+               {
+                   print("Not valid Fst estimator selected")
+               }
+               )
+        
         if(FstOnly & PBSonly){
             Fst12<-ifelse(pbs2[["al12"]]/pbs2[["bal12"]]>0.99,0.99,pbs2[["al12"]]/pbs2[["bal12"]])
             return(list(Fst12=Fst12))
@@ -211,12 +244,28 @@ wholeGenomePBS<-function(windows,fall,nInd,pos,rs,chr,n,al12,al13,al23,bal12,bal
         return(wgTable)
         
     } else{
-        ## calculating between and total genomic variance for whole genome (functions gives those and PBS values) 
-        pbs2<-pbsCalculator_forCpp(fall[,pop1],fall[,pop2],fall[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],pos,chr,
-                                   n=n,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+        ## calculating between and total genomic variance for whole genome (functions gives those and PBS values)
+
+        switch(whichFst,
+               Reynolds={        
+                   pbs2<-pbsCalculator_forCpp_ReynoldFst(fall[,pop1],fall[,pop2],fall[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],pos,chr,
+                                                         n=n,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+               },
+               Neis={        
+                   pbs2<-pbsCalculator_forCpp_NeiFst(fall[,pop1],fall[,pop2],fall[,pop3],pos,chr,
+                                                     n=n,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)
+               },
+               Hudsons={
+               pbs2<-pbsCalculator_forCpp_HudsonFst(fall[,pop1],fall[,pop2],fall[,pop3],nInd[pop1],nInd[pop2],nInd[pop3],pos,chr,		
+                                                         n=n,al12=al12,al13=al13,al23=al23,bal12=bal12,bal13=bal13,bal23=bal23,pbs=pbs)		
+               },
+               {
+                   print("Not valid Fst estimator selected")
+               }
+               )
+        
+        
         winFst<-list()
-
-
 
         ## generate a file name for the settings to save
         newName<-paste(paste0(shinyDir,"/",folderName,"/",".",pop1),pop2,pop3,winSize,ifelse(FstOnly,"Fst",""),"table",sep=".")
@@ -288,7 +337,6 @@ wholeGenomePBS<-function(windows,fall,nInd,pos,rs,chr,n,al12,al13,al23,bal12,bal
 ## if start is negative it means whole chromosome
 ## if end is negative it means end size interval around start
 extractWindow<-function(wgPBSpos,start,end,chr,minWin,ifWindows,FstOnly=F){
-
     
     if(start<0){
         winPBS<-wgPBSpos[[ifelse(FstOnly,"Fst12","PBS")]][which(wgPBSpos[["chr"]]==chr)]
@@ -350,8 +398,7 @@ PBSTable<-function(wgTable,chr,pop1,pop2,pop3,ifWindows,winSize,minWin,genes,all
         notInIntervalIndex<-which(wgTable$pos<start|wgTable$pos>end|wgTable$chr!=chr)
         
     }
-    
-    
+        
     ## calculate which quantile PBS values are in, by taking their 1-(rank/nSNP), only for those in desired window
     PBSquantile <- data.table::frank(c(wgTable[[ifelse(FstOnly,"Fst12","PBS")]][inIntervalIndex],wgTable[[ifelse(FstOnly,"Fst12","PBS")]][notInIntervalIndex]))[1:length(inIntervalIndex)]/length(wgTable[[1]])
     
@@ -374,7 +421,6 @@ PBSTable<-function(wgTable,chr,pop1,pop2,pop3,ifWindows,winSize,minWin,genes,all
         
         if(FstOnly){
             inInterval<-cbind(wgTable[["chr"]][inIntervalIndex],wgTable[["pos"]][inIntervalIndex],wgTable[["Fst12"]][inIntervalIndex],wgTable[["SNPsinWin"]][inIntervalIndex],PBSquantile*100)
-
             colnames(inInterval)<-c(names(wgTable),"quantile")
             inInterval[,"Fst12"]<-as.numeric(inInterval[,"Fst12"])
 
@@ -389,7 +435,6 @@ PBSTable<-function(wgTable,chr,pop1,pop2,pop3,ifWindows,winSize,minWin,genes,all
         
     }
     inInterval<-as.data.frame(inInterval,stringsAsFactors = F)
-
 
     keep<-which(!is.na(as.numeric(inInterval[,ifelse(FstOnly,"Fst12","PBS")])))
     inInterval<-inInterval[ keep,]

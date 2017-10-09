@@ -75,20 +75,20 @@ shinyServer(function(input, output, session) {
             n<-length(chr)
             
             if(input$together=="YES"){
-                wgPBSpos<-wholeGenomePBS(windows="NO",fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],PBSonly=T,maxChr=max(chr),FstOnly=input$FstOnly=="YES")
+                wgPBSpos<-wholeGenomePBS(windows="NO",fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],input$whichFst,PBSonly=T,maxChr=max(chr),FstOnly=input$FstOnly=="YES")
                 wgPBSpos$pos<-pos
                 wgPBSpos$chr<-chr
                 winPBSpos<-extractWindow(wgPBSpos=wgPBSpos,start=start,end=end,chr=input$chr,minWin=input$minWin,ifWindows="NO",FstOnly=input$FstOnly=="YES")
                 winPos<-winPBSpos[["winPos"]]
                 winPBS<-winPBSpos[[ifelse(input$FstOnly=="YES","Fst12","winPBS")]]
                 
-                wgPBSpos2<-wholeGenomePBS(windows="YES",fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=input$FstOnly=="YES")
+                wgPBSpos2<-wholeGenomePBS(windows="YES",fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],input$whichFst,maxChr=max(chr),FstOnly=input$FstOnly=="YES")
                 winPBSpos2<-extractWindow(wgPBSpos=wgPBSpos2,start=start,end=end,chr=input$chr,minWin=input$minWin,ifWindows="YES",FstOnly=input$FstOnly=="YES")
                 winPos2<-winPBSpos2[["winPos"]]
                 winPBS2<-winPBSpos2[[ifelse(input$FstOnly=="YES","Fst12","winPBS")]]
             } else{
                 
-                wgPBSpos<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],PBSonly=(input$ifWindows=="NO"),maxChr=max(chr),FstOnly=input$FstOnly=="YES")
+                wgPBSpos<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],input$whichFst,PBSonly=(input$ifWindows=="NO"),maxChr=max(chr),FstOnly=input$FstOnly=="YES")
               
                 if(input$ifWindows=="NO"){
                   wgPBSpos$pos<-pos
@@ -123,7 +123,7 @@ shinyServer(function(input, output, session) {
                     nf <- layout(matrix(c(1,2,3), 3, 1, byrow=TRUE),heights=c(1,0.5),widths=c(8))
                     par(mar=c(0.2, 6.2, 3, 6.3) + 0.1)
                     
-                    plot(winPos/1e6,winPBS,type="p",pch=16,col="darkgrey",xaxt="n",ylab=ifelse(input$FstOnly=="YES","Fst12","PBS"),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
+                    plot(winPos/1e6,winPBS,type="p",pch=16,col="darkgrey",xaxt="n",ylab=paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")"),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
                     abline(v=input$posPBS/1e6)
                     
                     par(new=TRUE)
@@ -133,7 +133,7 @@ shinyServer(function(input, output, session) {
                     ## perhaps find out if windows or not and plot accordingly so windows always red, lines and y-axis on the right
                     
                     axis(4,cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
-                    mtext(paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"))," red points",side=4,line=3,cex=1.3)
+                    mtext(paste0(paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")")," red points"),side=4,line=3,cex=1.3)
                     legend("topright",col=c("darkred","darkgrey"),lty=1,pch=c(16,17),legend=c("YES","NO"),cex=1.5)
                     ## will put x % quantile line in plot
                     if(input$quantileLine>0 & input$quantileLine<100) {
@@ -146,7 +146,7 @@ shinyServer(function(input, output, session) {
                     par(mfrow=c(1,3))
                     nf <- layout(matrix(c(1,2,3), 3, 1, byrow=TRUE),heights=c(1,0.5),widths=c(8))
                     par(mar=c(0.2, 6.2, 3, 6.3) + 0.1)
-                    plot(winPos/1e6,winPBS,type=input$plotType,pch=16,col="darkblue",xaxt="n",ylab=ifelse(input$FstOnly=="YES","Fst12","PBS"),main=paste("max ",ifelse(input$FstOnly=="YES","Fst12","PBS")," value in interval is pos ",winPos[which(winPBS==max(winPBS,na.rm=T))[1]]," with ",round(winPBS[which(winPBS==max(winPBS,na.rm=T))[1]],digits = 3),sep=""),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
+                    plot(winPos/1e6,winPBS,type=input$plotType,pch=16,col="darkblue",xaxt="n",ylab=paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")"),main=paste("max ",paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")")," value in interval is pos ",winPos[which(winPBS==max(winPBS,na.rm=T))[1]]," with ",round(winPBS[which(winPBS==max(winPBS,na.rm=T))[1]],digits = 3),sep=""),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
                     abline(v=input$posPBS/1e6)
                     ## will put x % quantile line in plot
                     if(input$quantileLine>0 & input$quantileLine<100) {
@@ -161,7 +161,7 @@ shinyServer(function(input, output, session) {
                     par(mfrow=2:1)
                     par(mar=c(5.1, 6.2, 3, 6.3))
                     
-                    plot(winPos/1e6,winPBS,type="p",pch=16,col="darkgrey",xaxt="n",ylab=ifelse(input$FstOnly=="YES","Fst12","PBS"),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
+                    plot(winPos/1e6,winPBS,type="p",pch=16,col="darkgrey",xaxt="n",ylab=paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")"),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
                     abline(v=input$posPBS/1e6)
                     
                     par(new=TRUE)
@@ -171,7 +171,7 @@ shinyServer(function(input, output, session) {
                     ## perhaps find out if windows or not and plot accordingly so windows always red, lines and y-axis on the right
                     
                     axis(4,cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
-                    mtext(paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"))," red points",side=4,line=3,cex=1.3)
+                    mtext(paste0(paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")"))," red points",side=4,line=3,cex=1.3)
                     legend("topright",col=c("darkred","darkgrey"),lty=1,pch=c(16,17),legend=c("YES","NO"),cex=1.5)
                     ## will put x % quantile line in plot
                     if(input$quantileLine>0 & input$quantileLine<100) {
@@ -182,7 +182,7 @@ shinyServer(function(input, output, session) {
                 else{
                     par(mfrow=2:1)
                     par(mar=c(5.1, 6.2, 3, 6.3))
-                    plot(winPos/1e6,winPBS,type=input$plotType,xlab=paste("Position (Mb) on ",input$chr,sep=""),pch=16,col="darkblue",ylab=ifelse(input$FstOnly=="YES","Fst12","PBS"),main=paste("max ",ifelse(input$FstOnly=="YES","Fst12","PBS")," value in interval is pos ",winPos[which(winPBS==max(winPBS,na.rm=T))[1]]," with ",round(winPBS[which(winPBS==max(winPBS,na.rm=T))[1]],digits = 3),sep=""),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
+                    plot(winPos/1e6,winPBS,type=input$plotType,xlab=paste("Position (Mb) on ",input$chr,sep=""),pch=16,col="darkblue",ylab=paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")"),main=paste("max ",paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")")," value in interval is pos ",winPos[which(winPBS==max(winPBS,na.rm=T))[1]]," with ",round(winPBS[which(winPBS==max(winPBS,na.rm=T))[1]],digits = 3),sep=""),cex=cexpoint,cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
                     abline(v=input$posPBS/1e6)
                     if(input$quantileLine>0 & input$quantileLine<100) {
                         abline(h=quantile(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]],input$quantileLine/100,na.rm=T),col="red")  
@@ -192,7 +192,7 @@ shinyServer(function(input, output, session) {
     
             ## genomewide PBS values histogram, with max PBS value and max PBS value in interval as vertical lines
             par(mar=c(5.1, 6.2, 3, 6.3))
-            hist(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]],br=100,col="darkred",xlab=ifelse(input$FstOnly=="YES","Fst12","PBS"),main=paste0("distribution of ",ifelse(input$FstOnly=="YES","Fst12","PBS")," values whole genome (blue max in interval, red chosen quantile line)"),cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
+            hist(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]],br=100,col="darkred",xlab=ifelse(input$FstOnly=="YES","Fst12","PBS"),main=paste0("distribution of ",paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")")," values whole genome (blue max in interval, red chosen quantile line)"),cex.axis=cexaxis,cex.lab=cexlab,cex.main=cexmain)
             ##abline(v=mmax,lwd=2,col="red")
             ##abline(v=max(winPBS),lwd=2,col="blue")
             
@@ -234,8 +234,15 @@ shinyServer(function(input, output, session) {
      ## calculating PBS values for whole genome, either windows or single marker, C++ functions for speed
      wgPBSpos<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),
                               al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),
-                              pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],PBSonly=(input$ifWindows=="NO"),maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
-     
+                              pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],input$whichFst,PBSonly=(input$ifWindows=="NO"),maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+
+
+
+      if(length(wgPBSpos$pos)==0){
+                plot(0:1,0:1,main="no Windows with enoughs SNPs!")
+                return()
+            }
+          
      ## remove those with PBS lower than 0.4
      
      ## plots PBS as function of position, for windows midpos of window
@@ -243,17 +250,17 @@ shinyServer(function(input, output, session) {
      
      manPBS<-wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]][which(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]]>0.1)]
      if(input$ifWindows=="YES"){
-      manChr<-wgPBSpos$chr[which(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]]>0.1)]
+         manChr<-wgPBSpos$chr[which(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]]>0.1)]
      } else{
-       manChr<-chr[which(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]]>0.1)]
+         manChr<-chr[which(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]]>0.1)]
      }
      
     ccol <- c("lightblue","darkblue")
     
-    plot(manPBS,col=ccol[manChr%%2+1],xaxt="n",pch=16,ylab=ifelse(input$FstOnly=="YES","Fst12","PBS"),xlab="chromosomes")
+    plot(manPBS,col=ccol[manChr%%2+1],xaxt="n",pch=16,ylab=paste0(ifelse(input$FstOnly=="YES","Fst12","PBS"),"(",input$whichFst,")"),xlab="chromosomes")
     tabC <- table(manChr)
     mm <- cumsum(tabC)-tabC/2
-    mtext(1:29,1,1:29%%3,at=unlist(mm))
+    mtext(1:max(chr),1,1:max(chr)%%3,at=unlist(mm))
     abline(h=quantile(wgPBSpos[[ifelse(input$FstOnly=="YES","Fst12","PBS")]],input$quantileLine/100,na.rm=T),col="red")  
     
        
@@ -295,25 +302,38 @@ shinyServer(function(input, output, session) {
      
      wgTable<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),
                              al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),
-                             pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+                             pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],input$whichFst,maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
         
-     
-     if(!(any(start<=wgTable$pos & end>=wgTable$pos & input$chr==wgTable$chr))){
-       inInterval<-data.frame(x="no SNPs in interval selected!")
+
+     if(length(wgTable$pos)==0){
+         inInterval<-data.frame(x="no SNPs in interval selected!")
          ##dT<- dTable(df)
          return(inInterval)
      }
     
+
+
+     
+     ##if(!(any(start<=wgTable$pos & end>=wgTable$pos & input$chr==wgTable$chr))){
+     ##  inInterval<-data.frame(x="no SNPs in interval selected!")
+         ##dT<- dTable(df)
+     ##    return(inInterval)
+     ##}
+    
      ## function for generating the table outputted, either windows or single marker, either top 1000 PBS or whole genome (all parameter)
      
      if(input$FstOnly=="YES"){
-       inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+         inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+         colnames(inInterval)[4]<-paste0(colnames(inInterval)[4],"(",input$whichFst,")",sep="")
      } else{
-      inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr))
+         inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr))
+         colnames(inInterval)[5:7]<-paste0(colnames(inInterval)[5:7],"(",input$whichFst,")",sep="")
      }
      ##dT<- dTable(inInterval,sPaginationType = 'full_numbers' ,iDisplayLength = 50)  
+
      
-     inInterval<-inInterval[ !is.na(as.numeric(inInterval[,ifelse(input$FstOnly=="YES","Fst12","PBS")])),]
+     
+     inInterval<-inInterval[ !is.na(as.numeric(inInterval[,ifelse(input$FstOnly=="YES",paste0("Fst12","(",input$whichFst,")"),"PBS")])),]
      return(inInterval) 
         
   })
@@ -365,27 +385,31 @@ runPBSgenes <- eventReactive(input$runPBSgenes, {
   
     geneTable<-genePBS(fallGene=fallGene,nInd=nInd,posGene=posGene,chrGene=chrGene,nPos=nPos,start=start,end=end,inputChr=input$chr,al12=numeric(nPos),
                        al13=numeric(nPos),al23=numeric(nPos),bal12=numeric(nPos),bal13=numeric(nPos),bal23=numeric(nPos),pbs=numeric(nPos),
-                       pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,minWin=input$minWin,whichGene=whichGene,nGene=nGene,geneRange=geneRange,wholeGenome=(input$chr<0),shinyDir=shinyDir,FstOnly=input$FstOnly=="YES")
+                       pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,minWin=input$minWin,whichGene=whichGene,nGene=nGene,geneRange=geneRange,input$whichFst,wholeGenome=(input$chr<0),shinyDir=shinyDir,FstOnly=input$FstOnly=="YES")
     
     geneTable<-as.data.frame(geneTable,stringsAsFactors = F)
+    
+    if(nrow(geneTable)==0){
+        geneTable<-data.frame(x="no genes in interval selected!")
+        return(geneTable)
+    }
+    
     
     if(input$FstOnly=="YES"){
       geneTable[,c("Fst12","chr","SNPsinGene","Fstquantile")]<-apply(geneTable[,c("Fst12","chr","SNPsinGene","Fstquantile")],2,as.numeric)
       geneTable<-geneTable[ order(geneTable$Fst12,decreasing = T),]
+      colnames(geneTable)[1]<-paste0(colnames(geneTable)[1],"(",input$whichFst,")",sep="")
     } else{
       geneTable[,c("PBS","Fst12","Fst13","Fst23","chr","SNPsinGene","PBSquantile")]<-apply(geneTable[,c("PBS","Fst12","Fst13","Fst23","chr","SNPsinGene","PBSquantile")],2,as.numeric)
       geneTable<-geneTable[ order(geneTable$PBS,decreasing = T),]
+      colnames(geneTable)[2:4]<-paste0(colnames(geneTable)[2:4],"(",input$whichFst,")",sep="")
     }
     
     
-    if(nrow(geneTable)==0){
-      geneTable<-data.frame(x="no genes in interval selected!")
-      return(geneTable)
-    }
     
     ##function for generating the table outputted, either windows or single marker, either top 1000 PBS or whole genome (all parameter)
     ##dT<- dTable(geneTable,sPaginationType = 'full_numbers' ,iDisplayLength = 50)
-    geneTable<-geneTable[ !is.na(geneTable[,ifelse(input$FstOnly=="YES","Fst12","PBS")]),]
+    geneTable<-geneTable[ !is.na(geneTable[,ifelse(input$FstOnly=="YES",paste0("Fst12","(",input$whichFst,")"),"PBS")]),]
     return(geneTable) 
   })
 
@@ -422,8 +446,12 @@ tableTopWg <- eventReactive(input$runWG, {
     
     wgTable<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),
                             al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),
-                            pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=input$FstOnly=="YES")
-    
+                            pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],input$whichFst,maxChr=max(chr),FstOnly=input$FstOnly=="YES")
+
+
+     if(length(wgTable$pos)==0){
+        return(data.frame("No windows with min number of SNPs selected!"))
+    }
     
     ##if(!(any(start<=wgTable$pos & end>=wgTable$pos & input$chr==wgTable$chr))){
     ##  df<-data.frame(x="No SNPs in interval selected!")
@@ -437,25 +465,26 @@ tableTopWg <- eventReactive(input$runWG, {
       top100 =  order(as.numeric(wgTable$PBS),decreasing=T)[1:100]
     }
     ##inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr)
-    if(input$ifWindows=="YES"){
-      
-      top100res = cbind(wgTable[[ifelse(input$FstOnly=="YES","Fst12","PBS")]][top100],wgTable$pos[top100],wgTable$chr[top100],wgTable$SNPsinWin[top100])
-      colnames(top100res)=c(ifelse(input$FstOnly=="YES","Fst12","PBS"),"Pos","Chr","SNPsinWin")
-      df <- as.data.frame(top100res)
-      df[,3]=as.character(df[,3])
+    if(input$ifWindows=="YES"){     
+        top100res <- cbind(wgTable[[ifelse(input$FstOnly=="YES","Fst12","PBS")]][top100],wgTable$pos[top100],wgTable$chr[top100],wgTable$SNPsinWin[top100])
+        colnames(top100res)<-c(ifelse(input$FstOnly=="YES","Fst12","PBS"),"Pos","Chr","SNPsinWin")
+        df <- as.data.frame(top100res)
+        df[,3]<-as.character(df[,3])
+        
     }else{
-      top100res = cbind(wgTable[[ifelse(input$FstOnly=="YES","Fst12","PBS")]][top100],wgTable$rs[top100],wgTable$pos[top100],wgTable$chr[top100])
-      colnames(top100res)=c(ifelse(input$FstOnly=="YES","Fst12","PBS"),"rs","Pos","Chr")
-      df <- as.data.frame(top100res)
-      df[,3]=as.character(df[,3])
+        top100res <- cbind(wgTable[[ifelse(input$FstOnly=="YES","Fst12","PBS")]][top100],wgTable$rs[top100],wgTable$pos[top100],wgTable$chr[top100])
+        colnames(top100res)<-c(ifelse(input$FstOnly=="YES","Fst12","PBS"),"rs","Pos","Chr")
+        df <- as.data.frame(top100res)
+        df[,3]<-as.character(df[,3])
     }
    
-    
+    colnames(df)[1]<-paste0(colnames(df)[1],"(",input$whichFst,")",sep="")    
     ##dT<- dTable(inInterval,sPaginationType = 'full_numbers' ,iDisplayLength = 50)
     ##dT <- dTable(dF ,sPaginationType = 'full_numbers' ,iDisplayLength = 100)    
     ##write.csv(dF,file="/home/albrecht/public/albrecht/open/tmp/idastmp.csv")#/home/ida/web/shiny/PBSwithGIv2/outdata/top1000.csv")
   
-    df<-df[ !is.na(df[,ifelse(input$FstOnly=="YES","Fst12","PBS")]),]
+    df<-df[ !is.na(df[,ifelse(input$FstOnly=="YES",paste0("Fst12","(",input$whichFst,")"),"PBS")]),]
+
     
     return(df) 
 
@@ -490,24 +519,25 @@ output$tableTopWg <- renderTable({
           
           wgTable<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),
                                   al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),
-                                  pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
-          
-          
-          if(!(any(start<=wgTable$pos & end>=wgTable$pos & input$chr==wgTable$chr))){
-            inInterval<-data.frame(x="no SNPs in interval selected!")
-            ##dT<- dTable(df)
-            return(inInterval)
-          }
+                                  pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],input$whichFst,maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+
+            
+            if(length(wgTable$pos)==0){
+                return(data.frame("No windows with min number of SNPs selected!"))
+            }
+            
           
           ## function for generating the table outputted, either windows or single marker, either top 1000 PBS or whole genome (all parameter)
           
           if(input$FstOnly=="YES"){
-            inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+              inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
+              colnames(inInterval)[4]<-paste0(colnames(inInterval)[4],"(",input$whichFst,")",sep="")
           } else{
-            inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr))
+              inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr))
+              colnames(inInterval)[5:7]<-paste0(colnames(inInterval)[5:7],"(",input$whichFst,")",sep="")
           }
           ##dT<- dTable(inInterval,sPaginationType = 'full_numbers' ,iDisplayLength = 50)  
-          inInterval<-inInterval[ !is.na(inInterval[,ifelse(input$FstOnly=="YES","Fst12","PBS")]),]
+          inInterval<-inInterval[ !is.na(inInterval[,ifelse(input$FstOnly=="YES",paste0("Fst12","(",input$whichFst,")"),"PBS")]),]
           write.table(inInterval,file,sep="\t",qu=F,row=F)
             
         }
@@ -551,27 +581,30 @@ output$tableTopWg <- renderTable({
             
             geneTable<-genePBS(fallGene=fallGene,nInd=nInd,posGene=posGene,chrGene=chrGene,nPos=nPos,start=start,end=end,inputChr=input$chr,al12=numeric(nPos),
                                al13=numeric(nPos),al23=numeric(nPos),bal12=numeric(nPos),bal13=numeric(nPos),bal23=numeric(nPos),pbs=numeric(nPos),
-                               pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,minWin=input$minWin,whichGene=whichGene,nGene=nGene,geneRange=geneRange,wholeGenome=(input$chr<0),shinyDir=shinyDir,FstOnly=input$FstOnly=="YES")
+                               pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,minWin=input$minWin,whichGene=whichGene,nGene=nGene,geneRange=geneRange,input$whichFst,wholeGenome=(input$chr<0),shinyDir=shinyDir,FstOnly=input$FstOnly=="YES")
             
             geneTable<-as.data.frame(geneTable,stringsAsFactors = F)
+
+            if(nrow(geneTable)==0){
+                geneTable<-data.frame(x="no genes with as many SNPs as selected!")
+                return(geneTable)
+            }
+            
             
             if(input$FstOnly=="YES"){
               geneTable[,c("Fst12","chr","SNPsinGene","Fstquantile")]<-apply(geneTable[,c("Fst12","chr","SNPsinGene","Fstquantile")],2,as.numeric)
               geneTable<-geneTable[ order(geneTable$Fst12,decreasing = T),]
+              colnames(geneTable)[1]<-paste0(colnames(geneTable)[1],"(",input$whichFst,")",sep="")
             } else{
               geneTable[,c("PBS","Fst12","Fst13","Fst23","chr","SNPsinGene","PBSquantile")]<-apply(geneTable[,c("PBS","Fst12","Fst13","Fst23","chr","SNPsinGene","PBSquantile")],2,as.numeric)
               geneTable<-geneTable[ order(geneTable$PBS,decreasing = T),]
+              colnames(geneTable)[2:4]<-paste0(colnames(geneTable)[1],"(",input$whichFst,")",sep="")
             }
             
-            
-            if(nrow(geneTable)==0){
-              geneTable<-data.frame(x="no genes in interval selected!")
-              return(geneTable)
-            }
-            
+     
             ##function for generating the table outputted, either windows or single marker, either top 1000 PBS or whole genome (all parameter)
             ##dT<- dTable(geneTable,sPaginationType = 'full_numbers' ,iDisplayLength = 50)
-            geneTable<-geneTable[ !is.na(geneTable[,ifelse(input$FstOnly=="YES","Fst12","PBS")]),]
+            geneTable<-geneTable[ !is.na(geneTable[,ifelse(input$FstOnly=="YES",paste0("Fst12","(",input$whichFst,")"),"PBS")]),]
                
             ##function for generating the table outputted, either windows or single marker, either top 1000 PBS or whole genome (all parameter)            
             ##dT<- dTable(geneTable,sPaginationType = 'full_numbers' ,iDisplayLength = 50)               
@@ -609,7 +642,7 @@ output$tableTopWg <- renderTable({
         n<-length(chr)
         
         ## pass on arguments to scripts that will calculate this
-        res <- list(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],genes=dat,inputChr=input$chr,FstOnly=input$FstOnly)
+        res <- list(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],whichFst=input$whichFst,genes=dat,inputChr=input$chr,FstOnly=input$FstOnly)
       
         save(res,file=paste0(shinyDir,"/tmp.Rdata"))
         

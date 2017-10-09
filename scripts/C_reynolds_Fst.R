@@ -7,7 +7,7 @@
 ## put these statements into more like functions - stop waste of code
 ## keep everything in vectors and use for loops - do not use apply - then C++ will come easily
 
-C_like_reynolds<-function(f1,f2,f3,N1,N2,N3,pos,chr,windows=0){
+C_like_reynold<-function(f1,f2,f3,N1,N2,N3,pos,chr,windows=0){
   q1<-numeric(length(f1))
   q2<-numeric(length(f1))
   q3<-numeric(length(f1))
@@ -90,6 +90,53 @@ C_like_nei<-function(f1,f2,f3,pos,chr,windows=0){
 
 
 
+
+C_like_hudson<-function(f1,f2,f3,N1,N2,N3,pos,chr,windows=0){
+  q1<-numeric(length(f1))
+  q2<-numeric(length(f1))
+  q3<-numeric(length(f1))
+
+  al12<-numeric(length(f1))
+  al13<-numeric(length(f1))
+  al23<-numeric(length(f1))
+  bal12<-numeric(length(f1))
+  bal13<-numeric(length(f1))
+  bal23<-numeric(length(f1))
+  pbs<-numeric(length(f1))
+  
+  for(i in 1:length(f1)){
+    q1[i]<-1-f1[i]
+    q2[i]<-1-f2[i]
+    q3[i]<-1-f3[i]
+    ##print(paste(c(p1,p2,q1,q2,N1,N2,alpha1,alpha2),collapse = "-"))
+    ## do formula with those variables like 
+    ## Fst 1,2
+    al12[i] <- (f1[i]-f2[i])**2 - ((f1[i]*q1[i])/(N1-1)) - ((f2[i]*q2[i])/(N2-1))
+    bal12[i] <- f1[i]*q2[i] + f2[i]*q1[i] 
+    ## Fst 1,3
+    al13[i] <- (f1[i]-f3[i])**2 - ((f1[i]*q1[i])/(N1-1)) - ((f3[i]*q3[i])/(N3-1))
+    bal13[i] <- f1[i]*q3[i] + f3[i]*q1[i] 
+    ## Fst 2,3
+    al23[i] <- (f2[i]-f3[i])**2 - ((f2[i]*q2[i])/(N2-1)) - ((f3[i]*q3[i])/(N3-1))
+    bal23[i] <- f2[i]*q3[i] + f3[i]*q2[i]
+    
+  }
+  if(windows==1){
+    return(c(al12,bal12,al13,bal13,al23,bal23))
+  } else{
+    for(i in (1:length(f1))){
+      pbs[i]<- (-log(1-(al12[i]/bal12[i])) + -log(1-(al13[i]/bal13[i])) - -log(1-(al23[i]/bal23[i]))) / 2
+      
+    }
+    return(cbind(chr,pos,pbs))
+  }
+}
+
+
+
+
+
+
 #C_like_reynolds<-function(f1,f2,f3,N1,N2,N3,pos,chr)
 
 #right_pos<-which(pos>=60000000 & pos<=62000000 & chr==11)
@@ -112,9 +159,9 @@ library(inline)
 
 
 ## both calculates PBS and the variane between populations (al) and the total (bal) variance (between + within)
-likeCPP_input<-signature(f1="numeric",f2="numeric",f3="numeric",N1="numeric",N2="numeric",N3="numeric",pos="integer",chr="integer",n="integer",al12="numeric",
+likeCPP_input_ReynoldFst<-signature(f1="numeric",f2="numeric",f3="numeric",N1="numeric",N2="numeric",N3="numeric",pos="integer",chr="integer",n="integer",al12="numeric",
                          al13="numeric",al23="numeric",bal12="numeric",bal13="numeric",bal23="numeric",pbs="numeric")
-likeCPP_code<-"
+likeCPP_code_ReynoldFst<-"
 double* q1 = new double[n[0]];
 double* q2 = new double[n[0]];
 double* q3 = new double[n[0]];
@@ -154,10 +201,10 @@ for(int i=0;i<n[0];i++){
 }
 "
 
-fns <- cfunction(list(pbsCalculator=likeCPP_input),
-                 list(likeCPP_code),
+fns <- cfunction(list(pbsCalculator_ReynoldFst=likeCPP_input_ReynoldFst),
+                 list(likeCPP_code_ReynoldFst),
                  convention=".C", cxxargs="-O3", cppargs="-O3",language="C++")
-pbsCalculator_forCpp<-fns[["pbsCalculator"]]
+pbsCalculator_forCpp_ReynoldFst<-fns[["pbsCalculator_ReynoldFst"]]
 
 
 
@@ -189,6 +236,53 @@ fns <- cfunction(list(pbsCalculator_NeiFst=likeCPP_input_NeiFst),
                  list(likeCPP_code_NeiFst),
                  convention=".C", cxxargs="-O3", cppargs="-O3",language="C++")
 pbsCalculator_forCpp_NeiFst<-fns[["pbsCalculator_NeiFst"]]
+
+
+
+
+####################################
+
+## based on Hudson's Fst formula proposed in Gaurav Bhatia et al., 2013 - Genome Research
+## both calculates PBS and the variane between populations (al) and the total (bal) variance (between + within)
+likeCPP_input_HudsonFst<-signature(f1="numeric",f2="numeric",f3="numeric",N1="numeric",N2="numeric",N3="numeric",pos="integer",chr="integer",n="integer",al12="numeric",
+                         al13="numeric",al23="numeric",bal12="numeric",bal13="numeric",bal23="numeric",pbs="numeric")
+likeCPP_code_HudsonFst<-"
+double* q1 = new double[n[0]];
+double* q2 = new double[n[0]];
+double* q3 = new double[n[0]];
+
+for(int i=0;i<n[0];i++){
+   
+   q1[i]=1-f1[i];
+   q2[i]=1-f2[i];
+   q3[i]=1-f3[i];
+
+   al12[i] = (f1[i]-f2[i])*(f1[i]-f2[i]) - ((f1[i]*q1[i])/(N1[0]-1)) - ((f2[i]*q2[i])/(N2[0]-1));
+   bal12[i] = f1[i]*q2[i] + f2[i]*q1[i];
+
+   al13[i] = (f1[i]-f3[i])*(f1[i]-f3[i])* - ((f1[i]*q1[i])/(N1[0]-1)) - ((f3[i]*q3[i])/(N3[0]-1));
+   bal13[i] = f1[i]*q3[i] + f3[i]*q1[i];
+
+   al23[i] = (f2[i]-f3[i])*(f2[i]-f3[i]) - ((f2[i]*q2[i])/(N2[0]-1)) - ((f3[i]*q3[i])/(N3[0]-1));
+   bal23[i] = f2[i]*q3[i] + f3[i]*q2[i];
+
+  } 
+for(int i=0;i<n[0];i++){
+  pbs[i]= (-log(1-(al12[i]/bal12[i])) + -log(1-(al13[i]/bal13[i])) - -log(1-(al23[i]/bal23[i]))) / 2.0;
+      
+}
+"
+
+fns <- cfunction(list(pbsCalculator_HudsonFst=likeCPP_input_HudsonFst),
+                 list(likeCPP_code_HudsonFst),
+                 convention=".C", cxxargs="-O3", cppargs="-O3",language="C++")
+pbsCalculator_forCpp_HudsonFst<-fns[["pbsCalculator_HudsonFst"]]
+
+
+
+
+
+
 
 
 
