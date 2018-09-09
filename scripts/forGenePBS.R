@@ -109,7 +109,7 @@ y<-as.data.frame(geneCount[order(uniqueAssignedGenes2$rightOrder)])
 y[,2]<-rownames(y)
 
 ## for assigned genes I have to know which gene the SNP belong to
-assignedGenes2$whichGeneIndex<-unlist(parallel::mclapply(1:nrow(assignedGenes2), function(x) which(assignedGenes2$gene[x]==y[,2]),mc.cores=10))
+assignedGenes2$whichGeneIndex<-unlist(parallel::mclapply(1:nrow(assignedGenes2), function(x) which(assignedGenes2$gene[x]==y[,1]),mc.cores=10))
 
 ## for getting version without bloody levels
 
