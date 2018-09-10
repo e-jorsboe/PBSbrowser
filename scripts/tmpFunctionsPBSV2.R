@@ -103,6 +103,9 @@ genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al1
         load(newName)
         if(inputChr>0){
             geneFst3<-geneFst3[ as.numeric(geneFst3$chr)==inputChr & as.numeric(sapply(geneFst3$range,function(x) unlist(strsplit(x,"-"))[1])) > start & as.numeric(sapply(geneFst3$range,function(x) unlist(strsplit(x,"-"))[2])) < end,]
+             if(nrow(geneFst3)==0){
+                return(data.frame("No genes with enough SNPs!"))
+            }
             
         }        
         return(geneFst3)
@@ -166,7 +169,14 @@ genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al1
             inIntervalIndex<-!logical(length(geneFst[[1]]))
         } else{
             inIntervalIndex<-(as.numeric(geneFst[["txEnd"]]) > start & as.numeric(geneFst[["txStart"]]) < end & as.numeric(geneFst[["chr"]]) == inputChr)
+            notInIntervalIndex<-!(as.numeric(geneFst[["txEnd"]]) > start & as.numeric(geneFst[["txStart"]]) < end & as.numeric(geneFst[["chr"]]) == inputChr)
+            ## if no windows with SNPs in it
+            if(length(notInIntervalIndex)==length(geneFst[["txEnd"]])){
+                return(data.frame("No genes with enough SNPs!"))
+            }
         }
+        
+        
         if(FstOnly){
             geneFst[["Fstquantile"]] <- (data.table::frank(c(as.numeric(geneFst[["Fst12"]])))/length(geneFst[[1]]))*100
         } else{
@@ -397,6 +407,10 @@ PBSTable<-function(wgTable,chr,pop1,pop2,pop3,ifWindows,winSize,minWin,genes,all
         inIntervalIndex<-which(wgTable$pos>=start&wgTable$pos<=end&wgTable$chr==chr)
         notInIntervalIndex<-which(wgTable$pos<start|wgTable$pos>end|wgTable$chr!=chr)
         
+    }
+
+    if(length(notInIntervalIndex)==length(wgTable[["pos"]])){
+        return(data.frame("No genes with enough SNPs!"))
     }
         
     ## calculate which quantile PBS values are in, by taking their 1-(rank/nSNP), only for those in desired window
