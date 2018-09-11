@@ -227,6 +227,9 @@ shinyServer(function(input, output, session) {
      if(toupper(input$clearData)=="CLEAR"){
          system(paste0("rm ",shinyDir,"/",folderName,"*"))
      }
+
+     ##filter away sites where freq is 0 or 1 in at least 2 pops
+     keep<-rowSums(cbind((fall[,pop1]==0 | fall[,pop1]==1), (fall[,pop2]==0 | fall[,pop2]==1), (fall[,pop3]==0 | fall[,pop3]==1)))<2
      
      ##preparing arguments for whole genome pbs calculations, or between and total for windows
      n<-length(chr)
@@ -281,16 +284,21 @@ shinyServer(function(input, output, session) {
      ## setwd("/home/emil/shiny/waterbuckPBSV3test/")
      ##input <- list(start=63,end=65,chr=13,ifWindows="NO",winSize=50000,pop1="Ghana",pop2="Kenya",pop3="Uganda",minWin=10,FstOnly="NO")
      ##shinyDir <- "~/tmp"
-   
+     
      if(pw(input,passWord,type="matrix")){
-      return()
+         return()
      }
-   
-    if(input$pop1==input$pop2 | input$pop1==input$pop3 | input$pop2==input$pop3 ){
-      
-      return(data.frame("You have picked on population at least twice!"))
-    }
-   
+     
+     if(input$pop1==input$pop2 | input$pop1==input$pop3 | input$pop2==input$pop3 ){
+         
+         return(data.frame("You have picked on population at least twice!"))
+     }
+     
+     if(input$chr<0 ){
+         
+         return(data.frame("You cannot specify negative chr here!"))
+     }
+     
      start<-input$start*1e06
      end<-input$end*1e06
      
@@ -303,47 +311,56 @@ shinyServer(function(input, output, session) {
      wgTable<-wholeGenomePBS(windows=input$ifWindows,fall=fall,nInd=nInd,pos=pos,rs=rs,chr=chr,n=n,al12=numeric(n),al13=numeric(n),
                              al23=numeric(n),bal12=numeric(n),bal13=numeric(n),bal23=numeric(n),pbs=numeric(n),
                              pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,winSize=input$winSize,minWin=input$minWin,shinyDir=shinyDir,SNPsinChr=SNPsinChr[,1],input$whichFst,maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
-        
-
+     
+     
      if(length(wgTable$pos)==0){
          inInterval<-data.frame(x="no SNPs in interval selected!")
          ##dT<- dTable(df)
          return(inInterval)
      }
-    
-
-
+     
+     
+     
      
      ##if(!(any(start<=wgTable$pos & end>=wgTable$pos & input$chr==wgTable$chr))){
      ##  inInterval<-data.frame(x="no SNPs in interval selected!")
-         ##dT<- dTable(df)
+     ##dT<- dTable(df)
      ##    return(inInterval)
      ##}
-    
+     
      ## function for generating the table outputted, either windows or single marker, either top 1000 PBS or whole genome (all parameter)
      
      if(input$FstOnly=="YES"){
          inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr),FstOnly=(input$FstOnly=="YES"))
-         colnames(inInterval)[4]<-paste0(colnames(inInterval)[4],"(",input$whichFst,")",sep="")
+         ## if error message
+         if(ncol(inInterval)>1){
+             colnames(inInterval)[4]<-paste0(colnames(inInterval)[4],"(",input$whichFst,")",sep="")
+         }         
+         
      } else{
          inInterval<-PBSTable(wgTable=wgTable,chr=input$chr,pop1=input$pop1,pop2=input$pop2,pop3=input$pop3,ifWindows=input$ifWindows,winSize=input$winSize,minWin=input$minWin,genes=dat,all="NO",start=start,end=end,thisChr=input$chr,maxChr=max(chr))
-         colnames(inInterval)[5:7]<-paste0(colnames(inInterval)[5:7],"(",input$whichFst,")",sep="")
+         ## if error message
+         if(ncol(inInterval)>1){
+             colnames(inInterval)[5:7]<-paste0(colnames(inInterval)[5:7],"(",input$whichFst,")",sep="")
+         }
+         
      }
      ##dT<- dTable(inInterval,sPaginationType = 'full_numbers' ,iDisplayLength = 50)  
-
      
      
-     inInterval<-inInterval[ !is.na(as.numeric(inInterval[,ifelse(input$FstOnly=="YES",paste0("Fst12","(",input$whichFst,")"),"PBS")])),]
+     if(ncol(inInterval)>1){
+         inInterval<-inInterval[ !is.na(as.numeric(inInterval[,ifelse(input$FstOnly=="YES",paste0("Fst12","(",input$whichFst,")"),"PBS")])),]
+     }
      return(inInterval) 
-        
-  })
+     
+ })
     
     output$tableTop <-  renderTable( {
         withProgress(runTable(),message="Calculation in progress, PROGESS BAR DOES NOT MEAN ANYTHING!!!!")
         
         
-      })
-      
+    })
+    
       
     
 ########################
@@ -389,7 +406,7 @@ runPBSgenes <- eventReactive(input$runPBSgenes, {
     
     geneTable<-as.data.frame(geneTable,stringsAsFactors = F)
     
-    if(nrow(geneTable)==0){
+    if(ncol(geneTable)<2){
         geneTable<-data.frame(x="no genes in interval selected!")
         return(geneTable)
     }
@@ -482,9 +499,8 @@ tableTopWg <- eventReactive(input$runWG, {
     ##dT<- dTable(inInterval,sPaginationType = 'full_numbers' ,iDisplayLength = 50)
     ##dT <- dTable(dF ,sPaginationType = 'full_numbers' ,iDisplayLength = 100)    
     ##write.csv(dF,file="/home/albrecht/public/albrecht/open/tmp/idastmp.csv")#/home/ida/web/shiny/PBSwithGIv2/outdata/top1000.csv")
-  
-    df<-df[ !is.na(df[,ifelse(input$FstOnly=="YES",paste0("Fst12","(",input$whichFst,")"),"PBS")]),]
 
+    df<-df[ !is.na(df[,ifelse(input$FstOnly=="YES",paste0("Fst12","(",input$whichFst,")"),paste0("PBS","(",input$whichFst,")"))]),]
     
     return(df) 
 
