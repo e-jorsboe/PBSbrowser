@@ -29,17 +29,32 @@ C_like_reynold<-function(f1,f2,f3,N1,N2,N3,pos,chr,windows=0){
     alpha1[i]<-1 - (f1[i]**2 + q1[i]**2)
     alpha2[i]<-1 - (f2[i]**2 + q2[i]**2)
     alpha3[i]<-1 - (f3[i]**2 + q3[i]**2)
-    #print(paste(c(p1,p2,q1,q2,N1,N2,alpha1,alpha2),collapse = "-"))
-    # do formula with those variables like 
-    # Fst 1,2
+    ##print(paste(c(p1,p2,q1,q2,N1,N2,alpha1,alpha2),collapse = "-"))
+    ## do formula with those variables like 
+    ## Fst 1,2
     al12[i] <- 1/2 * ( (f1[i]-f2[i])^2 + (q1[i]-q2[i])^2) - (N1+N2) * (N1*alpha1[i] + N2*alpha2[i]) / (4*N1*N2*(N1+N2-1))
     bal12[i] <- 1/2 * ( (f1[i]-f2[i])^2 + (q1[i]-q2[i])^2) + (4*N1*N2-N1-N2)*(N1*alpha1[i] + N2*alpha2[i]) / (4*N1*N2*(N1+N2-1))
-    # Fst 1,3
+    ## Fst 1,3
     al13[i] <- 1/2 * ( (f1[i]-f3[i])^2 + (q1[i]-q3[i])^2) - (N1+N3) * (N1*alpha1[i] + N3*alpha3[i]) / (4*N1*N3*(N1+N3-1))
     bal13[i] <- 1/2 * ( (f1[i]-f3[i])^2 + (q1[i]-q3[i])^2) + (4*N1*N3-N1-N3)*(N1*alpha1[i] + N3*alpha3[i]) / (4*N1*N3*(N1+N3-1))
-    # Fst 2,3
+    ## Fst 2,3
     al23[i] <- 1/2 * ( (f2[i]-f3[i])^2 + (q2[i]-q3[i])^2) - (N2+N3) * (N2*alpha2[i] + N3*alpha3[i]) / (4*N2*N3*(N2+N3-1))
     bal23[i] <- 1/2 * ( (f2[i]-f3[i])^2 + (q2[i]-q3[i])^2) + (4*N2*N3-N2-N3)*(N2*alpha2[i] + N3*alpha3[i]) / (4*N2*N3*(N2+N3-1))
+    
+    ## added definition of if freqs are 0 and 0 OR 1 and 1 between pops Fst is 0
+    if((f1[i]<1e-06 && f2[i]<1e-06) | (f1[i]>(1-1e-06) && f2[i]>(1-1e-06))){
+        al12[i]=0.0;bal12=1.0;
+    }
+    
+    if((f1[i]<1e-06 && f3[i]<1e-06) | (f1[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+        al13[i]=0.0;bal13=1.0;
+    }
+    
+    if((f2[i]<1e-06 && f3[i]<1e-06) | (f2[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+        al23[i]=0.0;bal23=1.0;
+    } 
+    
+    
   }
   if(windows==1){
     return(c(al12,bal12,al13,bal13,al23,bal23))
@@ -65,17 +80,33 @@ C_like_nei<-function(f1,f2,f3,pos,chr,windows=0){
   pbs<-numeric(length(f1))
   
   for(i in 1:length(f1)){
-    #print(paste(c(p1,p2,q1,q2,N1,N2,alpha1,alpha2),collapse = "-"))
-    # do formula with those variables like 
-    # Fst 1,2
-    al12[i] <- (f1[i]+f2[i])*(f1[i]+f2[i])
-    bal12[i] <- 2*((f1[i]+f2[i])/2)*(1-((f1[i]+f2[i])/2))
-    # Fst 1,3
-    al13[i] <- (f1[i]+f3[i])*(f1[i]+f3[i]) 
-    bal13[i] <- 2*((f1[i]+f3[i])/2)*(1-((f1[i]+f3[i])/2))
-    # Fst 2,3
-    al23[i] <- (f2[i]+f3[i])*(f2[i]+f3[i]) 
-    bal23[i] <- 2*((f2[i]+f3[i])/2)*(1-((f2[i]+f3[i])/2))
+      ##print(paste(c(p1,p2,q1,q2,N1,N2,alpha1,alpha2),collapse = "-"))
+      ## do formula with those variables like 
+      ## Fst 1,2
+      al12[i] <- (f1[i]+f2[i])*(f1[i]+f2[i])
+      bal12[i] <- 2*((f1[i]+f2[i])/2)*(1-((f1[i]+f2[i])/2))
+      ## Fst 1,3
+      al13[i] <- (f1[i]+f3[i])*(f1[i]+f3[i]) 
+      bal13[i] <- 2*((f1[i]+f3[i])/2)*(1-((f1[i]+f3[i])/2))
+                                        ## Fst 2,3
+      al23[i] <- (f2[i]+f3[i])*(f2[i]+f3[i]) 
+      bal23[i] <- 2*((f2[i]+f3[i])/2)*(1-((f2[i]+f3[i])/2))
+
+      
+      ## added definition of if freqs are 0 and 0 OR 1 and 1 between pops Fst is 0
+      if((f1[i]<1e-06 && f2[i]<1e-06) | (f1[i]>(1-1e-06) && f2[i]>(1-1e-06))){
+          al12[i]=0.0;bal12=1.0;
+      }
+      
+      if((f1[i]<1e-06 && f3[i]<1e-06) | (f1[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+          al13[i]=0.0;bal13=1.0;
+      }
+      
+      if((f2[i]<1e-06 && f3[i]<1e-06) | (f2[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+          al23[i]=0.0;bal23=1.0;
+      } 
+      
+      
   }
   if(windows==1){
     return(c(al12,bal12,al13,bal13,al23,bal23))
@@ -120,7 +151,27 @@ C_like_hudson<-function(f1,f2,f3,N1,N2,N3,pos,chr,windows=0){
     al23[i] <- (f2[i]-f3[i])**2 - ((f2[i]*q2[i])/(N2-1)) - ((f3[i]*q3[i])/(N3-1))
     bal23[i] <- f2[i]*q3[i] + f3[i]*q2[i]
     
+    
+    ## added definition of if freqs are 0 and 0 OR 1 and 1 between pops Fst is 0
+    if((f1[i]<1e-06 && f2[i]<1e-06) | (f1[i]>(1-1e-06) && f2[i]>(1-1e-06))){
+        al12[i]=0.0;bal12=1.0;
+    }
+    
+    if((f1[i]<1e-06 && f3[i]<1e-06) | (f1[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+        al13[i]=0.0;bal13=1.0;
+    }
+    
+    if((f2[i]<1e-06 && f3[i]<1e-06) | (f2[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+        al23[i]=0.0;bal23=1.0;
+    } 
+    
+    
+    
   }
+  
+ 
+
+  
   if(windows==1){
     return(c(al12,bal12,al13,bal13,al23,bal23))
   } else{
@@ -159,6 +210,7 @@ library(inline)
 
 
 ## both calculates PBS and the variane between populations (al) and the total (bal) variance (between + within)
+## added definition of if freqs are 0 and 0 OR 1 and 1 between pops Fst is 0
 likeCPP_input_ReynoldFst<-signature(f1="numeric",f2="numeric",f3="numeric",N1="numeric",N2="numeric",N3="numeric",pos="integer",chr="integer",n="integer",al12="numeric",
                          al13="numeric",al23="numeric",bal12="numeric",bal13="numeric",bal23="numeric",pbs="numeric")
 likeCPP_code_ReynoldFst<-"
@@ -194,6 +246,21 @@ for(int i=0;i<n[0];i++){
    
    al23[i] = 0.5*((f2[i]-f3[i])*(f2[i]-f3[i]) + (q2[i]-q3[i])*(q2[i]-q3[i])) - (N2[0]+N3[0]) * (N2[0]*alpha2[i] + N3[0]*alpha3[i]) / (4*N2[0]*N3[0]*(N2[0]+N3[0]-1));
    bal23[i] = 0.5*((f2[i]-f3[i])*(f2[i]-f3[i]) + (q2[i]-q3[i])*(q2[i]-q3[i])) + (4*N2[0]*N3[0]-N2[0]-N3[0])*(N2[0]*alpha2[i] + N3[0]*alpha3[i]) / (4*N2[0]*N3[0]*(N2[0]+N3[0]-1));
+
+  if((f1[i]<1e-06 && f2[i]<1e-06) | (f1[i]>(1-1e-06) && f2[i]>(1-1e-06))){
+       al12[i]=0.0;bal12[i]=1.0;
+   }
+
+   if((f1[i]<1e-06 && f3[i]<1e-06) | (f1[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+       al13[i]=0.0;bal13[i]=1.0;
+   }
+
+   if((f2[i]<1e-06 && f3[i]<1e-06) | (f2[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+       al23[i]=0.0;bal23[i]=1.0;
+   }
+
+
+
   } 
 for(int i=0;i<n[0];i++){
   pbs[i]= (-log(1-(al12[i]/bal12[i])) + -log(1-(al13[i]/bal13[i])) - -log(1-(al23[i]/bal23[i]))) / 2.0;
@@ -212,6 +279,7 @@ pbsCalculator_forCpp_ReynoldFst<-fns[["pbsCalculator_ReynoldFst"]]
 
 
 ## both calculates PBS and the variane between populations (al) and the total (bal) variance (between + within)
+## added definition of if freqs are 0 and 0 OR 1 and 1 between pops Fst is 0
 likeCPP_input_NeiFst<-signature(f1="numeric",f2="numeric",f3="numeric",pos="integer",chr="integer",n="integer",al12="numeric",al13="numeric",al23="numeric",bal12="numeric",bal13="numeric",bal23="numeric",pbs="numeric")
 likeCPP_code_NeiFst<-"
 
@@ -225,6 +293,21 @@ for(int i=0;i<n[0];i++){
    
    al23[i] = (f2[i]-f3[i])*(f2[i]-f3[i]);
    bal23[i] = 2*((f2[i]+f3[i])/2)*(1-((f2[i]+f3[i])/2));
+
+
+   if((f1[i]<1e-06 && f2[i]<1e-06) | (f1[i]>(1-1e-06) && f2[i]>(1-1e-06))){
+       al12[i]=0.0;bal12[i]=1.0;
+   }
+
+   if((f1[i]<1e-06 && f3[i]<1e-06) | (f1[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+       al13[i]=0.0;bal13[i]=1.0;
+   }
+
+   if((f2[i]<1e-06 && f3[i]<1e-06) | (f2[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+       al23[i]=0.0;bal23[i]=1.0;
+   }
+
+
   } 
 for(int i=0;i<n[0];i++){
   pbs[i]= (-log(1-(al12[i]/bal12[i])) + -log(1-(al13[i]/bal13[i])) - -log(1-(al23[i]/bal23[i]))) / 2.0;
@@ -244,6 +327,7 @@ pbsCalculator_forCpp_NeiFst<-fns[["pbsCalculator_NeiFst"]]
 
 ## based on Hudson's Fst formula proposed in Gaurav Bhatia et al., 2013 - Genome Research
 ## both calculates PBS and the variane between populations (al) and the total (bal) variance (between + within)
+## added definition of if freqs are 0 and 0 OR 1 and 1 between pops Fst is 0
 likeCPP_input_HudsonFst<-signature(f1="numeric",f2="numeric",f3="numeric",N1="numeric",N2="numeric",N3="numeric",pos="integer",chr="integer",n="integer",al12="numeric",
                          al13="numeric",al23="numeric",bal12="numeric",bal13="numeric",bal23="numeric",pbs="numeric")
 likeCPP_code_HudsonFst<-"
@@ -252,7 +336,9 @@ double* q2 = new double[n[0]];
 double* q3 = new double[n[0]];
 
 for(int i=0;i<n[0];i++){
-   
+
+
+
    q1[i]=1-f1[i];
    q2[i]=1-f2[i];
    q3[i]=1-f3[i];
@@ -265,6 +351,18 @@ for(int i=0;i<n[0];i++){
 
    al23[i] = (f2[i]-f3[i])*(f2[i]-f3[i]) - ((f2[i]*q2[i])/(N2[0]-1)) - ((f3[i]*q3[i])/(N3[0]-1));
    bal23[i] = f2[i]*q3[i] + f3[i]*q2[i];
+
+   if((f1[i]<1e-06 && f2[i]<1e-06) | (f1[i]>(1-1e-06) && f2[i]>(1-1e-06))){
+       al12[i]=0.0;bal12[i]=1.0;
+   }
+
+   if((f1[i]<1e-06 && f3[i]<1e-06) | (f1[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+       al13[i]=0.0;bal13[i]=1.0;
+   }
+
+   if((f2[i]<1e-06 && f3[i]<1e-06) | (f2[i]>(1-1e-06) && f3[i]>(1-1e-06))){
+       al23[i]=0.0;bal23[i]=1.0;
+   }   
 
   } 
 for(int i=0;i<n[0];i++){
