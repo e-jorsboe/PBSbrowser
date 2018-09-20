@@ -207,7 +207,7 @@ genePBS<-function(fallGene,nInd,posGene,chrGene,nPos,start,end,inputChr,al12,al1
 ## it uses the aforementioned C++ functions
 ## if windows it looks if file already exists and it loads if so
 wholeGenomePBS<-function(windows,fall,nInd,pos,rs,chr,n,al12,al13,al23,bal12,bal13,bal23,pbs,pop1,pop2,pop3,winSize,minWin,shinyDir,SNPsinChr,whichFst,PBSonly=F,maxChr,FstOnly=F){
-
+    
     if(windows=="NO"){
         ## calculating PBS values for whole genome
         
